@@ -26,10 +26,12 @@ public class Game extends JFrame{
     public JButton buttonPressed;
     private final JButton[][] buttonArray;
     private final Random random = new Random( 48239408);
-    protected volatile boolean hasResetBeenPressed = false;
+    private Thread t;
+    private String currentPlayer;
+    private volatile boolean hasResetBeenPressed = false;
     private volatile boolean hasButtonBeenPressed = false;
 
-    public Game() {
+    public Game() throws InterruptedException {
 
         this.setTitle("TicTacToe");
         this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
@@ -37,7 +39,10 @@ public class Game extends JFrame{
         this.setVisible(true);
 
         buttonArray = initButtons(button1, button2, button3, button4, button5, button6, button7, button8, button9);
-        reset.addActionListener(e -> hasResetBeenPressed = true);
+        reset.addActionListener(e -> {
+            hasResetBeenPressed = true;
+            resetGame();
+        });
         gameContainer.setVisible(true);
         this.add(gameContainer);
 
@@ -47,10 +52,10 @@ public class Game extends JFrame{
 
     /*
     * TODO:
-    *   Check for a win (WinDetection.java)
+    *   Bugfixes (Every Dev's Dream):
+    *       - Win is not checked until another player has gone
     */
-    public void mainLoop(JButton[][] buttons) {
-        String currentPlayer;
+    public void mainLoop(JButton[][] buttons) throws InterruptedException {
 
         if (random.nextInt(5) % 2 == 0) {
             playerTurnDisplay.setText("O's Turn!");
@@ -60,46 +65,59 @@ public class Game extends JFrame{
             currentPlayer = "X";
         }
 
+        //IntelliJ I know what I'm doing :100:
         while (true) {
-            while(!hasButtonBeenPressed) {
+            while (!hasButtonBeenPressed) {
                 Thread.onSpinWait();
+
             }
             hasButtonBeenPressed = false;
-            buttonPressed.setText(currentPlayer);
-            currentPlayer = Objects.equals(currentPlayer, "X") ? "O" : "X";
+            t.join();
+            playerTurnDisplay.setText(Objects.equals(currentPlayer, "X") ? "X's Turn!" : "O's Turn!");
+            gameButtons.updateUI();
+            playerTurn.updateUI();
 
-            if (WinDetection.isWin(buttons, currentPlayer)) {
+            if (StateDetection.isWin(buttons, currentPlayer)) {
                 playerTurnDisplay.setText(currentPlayer + " has won!");
                 while (!hasResetBeenPressed) {
                     //Beyblade Beyblade let it rip!
                     //Next line is courtesy of the IDE
                     Thread.onSpinWait();
                 }
-                break;
-                //bruh
+            } else if (StateDetection.isBoardDisabled(buttons)) {
+                playerTurnDisplay.setText("It's a Tie! Press reset to play again!");
+                while (!hasResetBeenPressed) {
+                    Thread.onSpinWait();
+                }
             }
         }
-
 
     }
 
     private JButton[][] initButtons(JButton... buttons) {
-        JButton[][] buttonGridArray = new JButton[buttons.length / 3][buttons.length / 3];
+        JButton[][] buttonGridArray = new JButton[3][3];
 
         for (JButton button : buttons) {
 
             button.setText("-");
             button.addActionListener(e -> {
-                buttonPressed = (JButton) e.getSource();
-                buttonPressed.setEnabled(false);
-                hasButtonBeenPressed = true;
-            });
+                t = new Thread(() -> {
+                    buttonPressed = (JButton) e.getSource();
+                    buttonPressed.setEnabled(false);
+                    hasButtonBeenPressed = true;
+                    buttonPressed.setText(currentPlayer);
+                    currentPlayer = Objects.equals(currentPlayer, "X") ? "O" : "X";
+                });
 
+                t.start();
+            });
         }
 
+        int h = 0;
         for (int i = 0; i < buttonGridArray.length; i++) {
             for (int j = 0; j < buttonGridArray[i].length; j++) {
-                buttonGridArray[i][j] = buttons[i * j + j];
+                buttonGridArray[i][j] = buttons[h];
+                h++;
             }
         }
 
@@ -107,11 +125,14 @@ public class Game extends JFrame{
     }
 
     private void resetGame() {
-        for (int i = 0; i < buttonArray.length; i++) {
-            for (int j = 0; j < buttonArray[i].length; i++) {
-                buttonArray[i][j].setText("-");
+        for (JButton[] jButtons : buttonArray) {
+            for (JButton jButton : jButtons) {
+                jButton.setText("-");
+                jButton.setEnabled(true);
             }
         }
+        hasResetBeenPressed = false;
+        playerTurnDisplay.setText(random.nextInt() % 2 == 0 ? "X's Turn!" : "O's Turn!");
     }
 
 }

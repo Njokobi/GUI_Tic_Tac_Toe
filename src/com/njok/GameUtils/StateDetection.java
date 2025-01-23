@@ -3,7 +3,7 @@ package com.njok.GameUtils;
 import javax.swing.*;
 import java.util.Objects;
 
-public class WinDetection {
+public class StateDetection {
 
     public static boolean isWin(JButton[][] board, String player) {
         if (diagonalMatch(board, player)) {
@@ -47,34 +47,36 @@ public class WinDetection {
 
         return true;
     }
-    //TODO: Impl
+
     private static boolean horizontalMatch(JButton[][] board, String player) {
-        int count = 0;
-        for (int i = 1; i < board.length; i++) {
-            for (int j = 1; j < board.length; j++) {
-                if (Objects.equals(board[i][j].getText(), player) && Objects.equals(board[i][j].getText(), board[i - 1][j - 1].getText())) {
-                    count++;
-                }
+        for (JButton[] jButtons : board) {
+            if (Objects.equals(jButtons[0].getText(), player) && Objects.equals(player, jButtons[1].getText()) && Objects.equals(player, jButtons[2].getText())) {
+                return true;
             }
         }
-
-        return count == 3;
+        return false;
     }
 
     private static boolean verticalMatch(JButton[][] board, String player) {
-        int count = 0;
-        for (int i = 1; i < board.length; i++) {
-            for (int j = 1; j < board.length; j++) {
-                if (Objects.equals(board[j][i].getText(), player) && Objects.equals(board[j][i].getText(), board[j - 1][i - 1].getText())) {
-                    count++;
+
+        for (int i = 0; i < board.length; i++) {
+            if (Objects.equals(board[0][i].getText(), player) && Objects.equals(board[1][i].getText(), player) && Objects.equals(board[2][i].getText(), player)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean isBoardDisabled(JButton[][] buttons) {
+        for (JButton[] jButtons : buttons) {
+            for (JButton button : jButtons) {
+                if (button.isEnabled()) {
+                    return false;
                 }
             }
         }
 
-        return count == 3;
+        return true;
     }
 
-    private static boolean isValidPoint(int[] point) {
-        return point[0] == 0 || point[0] == 1 && point[1] == 2 || point[0] == 2 && point[1] == 0;
-    }
 }
