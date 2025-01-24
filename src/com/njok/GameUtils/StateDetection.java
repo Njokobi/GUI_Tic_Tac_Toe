@@ -6,46 +6,13 @@ import java.util.Objects;
 public class StateDetection {
 
     public static boolean isWin(JButton[][] board, String player) {
-        if (diagonalMatch(board, player)) {
-            return true;
-        } else if (horizontalMatch(board, player)) {
-            return true;
-        } else if (verticalMatch(board, player)) {
-            return true;
-        }
-
-        return false;
+        String prevPlayer = Objects.equals(player, "X") ? "O" : "X";
+        return verticalMatch(board, prevPlayer) || diagonalMatch(board, prevPlayer) || horizontalMatch(board, prevPlayer);
     }
 
     private static boolean diagonalMatch(JButton[][] board, String player) {
-        //The easy part
-        int count = 0;
-        for (int i = 0; i < board.length; i++) {
-            if (Objects.equals(board[i][i].getText(), player)) {
-                count++;
-            }
-        }
-
-        if (count == 3) {
-            return true;
-        }
-        count = 0;
-
-        //The harder part
-        for (int i = 0; i < board.length; i++) {
-            if (i == 0) {
-                count += Objects.equals(board[i][2].getText(), player) ? 1 : 0;
-            } else if (i == 2) {
-                count += Objects.equals(board[i][0].getText(), player) ? 1 : 0;
-            } else {
-                count += Objects.equals(board[i][i].getText(), player) ? 1 : 0;
-            }
-            if (count != i + 1) {
-                return false;
-            }
-        }
-
-        return true;
+        if (Objects.equals(board[0][0].getText(), player) && Objects.equals(board[1][1].getText(), player) && Objects.equals(board[2][2].getText(), player)) return true;
+        else return Objects.equals(board[0][2].getText(), player) && Objects.equals(board[1][1].getText(), player) && Objects.equals(board[2][0].getText(), player);
     }
 
     private static boolean horizontalMatch(JButton[][] board, String player) {
