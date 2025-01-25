@@ -24,6 +24,7 @@ public class Game extends JFrame{
     private JPanel gameButtons;
     private JPanel playerTurn;
     private JLabel playerTurnDisplay;
+    private JPanel titleContainer;
     public JButton buttonPressed;
     private final JButton[][] buttonArray;
     private final Random random = new Random( 48239408);
@@ -33,26 +34,28 @@ public class Game extends JFrame{
     private volatile boolean hasResetBeenPressed = false;
     private volatile boolean hasButtonBeenPressed = false;
 
+    /*
+         Class constructor that initialises the JFrame and its components
+
+                @params
+                    none
+     */
     public Game() throws InterruptedException {
-        final Color backgroundColor = new Color(238, 232, 170);
+        final Color panelColor = new Color(238, 232, 170);
 
         this.setTitle("TicTacToe");
         this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         this.setSize(750, 750);
         this.setVisible(true);
-        this.setBackground(backgroundColor);
+        this.setBackground(panelColor);
 
-        /*
-         * TODO:
-         *   Bugfixes (Every Dev's Dream):
-         *       - Recoloring spacers does not work in Game.form
-         */
 
-        gameContainer.setBackground(backgroundColor);
-        titleText.setBackground(backgroundColor);
-        playerTurn.setBackground(backgroundColor);
-        resetButton.setBackground(backgroundColor);
-        gameButtons.setBackground(backgroundColor);
+        gameContainer.setBackground(panelColor);
+        titleText.setBackground(panelColor);
+        playerTurn.setBackground(panelColor);
+        resetButton.setBackground(panelColor);
+        gameButtons.setBackground(panelColor);
+        titleContainer.setBackground(panelColor);
         reset.setBackground(buttonColor);
 
         buttonArray = initButtons(button1, button2, button3, button4, button5, button6, button7, button8, button9);
@@ -67,6 +70,13 @@ public class Game extends JFrame{
         mainLoop(buttonArray);
     }
 
+    /*
+         Runs the main loop of events needed to play the game
+
+                @params
+                    JButton[][] buttons
+                        The array of buttons on which operations will be performed
+     */
     public void mainLoop(JButton[][] buttons) throws InterruptedException {
 
         if (random.nextInt(5) % 2 == 0) {
@@ -80,20 +90,22 @@ public class Game extends JFrame{
         //IntelliJ I know what I'm doing :100:
         while (true) {
             while (!hasButtonBeenPressed) {
+                //Beyblade
                 Thread.onSpinWait();
 
             }
             hasButtonBeenPressed = false;
+
+            //If the turn display updates pre-currentPlayer update we get desync
             t.join();
             playerTurnDisplay.setText(Objects.equals(currentPlayer, "X") ? "X's Turn!" : "O's Turn!");
             gameButtons.updateUI();
             playerTurn.updateUI();
 
             if (StateDetection.isWin(buttons, currentPlayer)) {
-                playerTurnDisplay.setText(Objects.equals(currentPlayer, "X") ? "O" : "X" + " has won!");
+                playerTurnDisplay.setText(Objects.equals(currentPlayer, "X") ? "O has won!" : "X has won!");
                 lockAll();
                 while (!hasResetBeenPressed) {
-                    //Beyblade Beyblade let it rip!
                     //Next line is courtesy of the IDE
                     Thread.onSpinWait();
                 }
@@ -107,6 +119,13 @@ public class Game extends JFrame{
 
     }
 
+    /*
+         Initializes the buttons passed to it into a 3x3 Array
+
+                @params
+                    JButton... buttons
+                        The array of buttons on which operations will be performed (varargs because we cannot be bothered to create an array)
+     */
     private JButton[][] initButtons(JButton... buttons) {
         JButton[][] buttonGridArray = new JButton[3][3];
 
@@ -115,6 +134,7 @@ public class Game extends JFrame{
             button.setText("-");
             button.setFont(new Font("JetBrains Mono", Font.BOLD, 40));
             button.setBackground(buttonColor);
+            button.setForeground(buttonColor);
             button.addActionListener(e -> {
                 t = new Thread(() -> {
                     buttonPressed = (JButton) e.getSource();
@@ -139,6 +159,12 @@ public class Game extends JFrame{
         return buttonGridArray;
     }
 
+    /*
+         Resets the game to a first run state
+
+                @params
+                    none
+     */
     private void resetGame() {
         for (JButton[] jButtons : buttonArray) {
             for (JButton jButton : jButtons) {
@@ -157,6 +183,12 @@ public class Game extends JFrame{
 
     }
 
+    /*
+         Locks all buttons on the game board
+
+                @params
+                    none
+     */
     private void lockAll() {
         for (JButton[] jButtons : buttonArray) {
             for (JButton button : jButtons) {
